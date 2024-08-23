@@ -1,14 +1,65 @@
+import { Bounce, toast } from 'react-toastify';
+import { useEffect } from "react"
 import { useForm } from "react-hook-form"
 import Error from "./Error"
 import type {DraftPatient} from '../types'
+import { usePatientStore } from "../store"
 
 useForm
 export default function PatientForm() {
-  const {register,handleSubmit,formState:{errors}} =useForm<DraftPatient>()
+  const{addPatient} =usePatientStore()
+  const idPatient =usePatientStore(state => state.idPatient)
+  const patients =usePatientStore(state => state.patients)
+  const updatePatient =usePatientStore(state => state.updatePatient)
+  
+
+  const {register,handleSubmit,setValue,formState:{errors},reset} =useForm<DraftPatient>()
+
+  useEffect(() => {
+    if(idPatient){
+        const patientEctive=patients.filter(item => item.id === idPatient)[0]
+        setValue('name',patientEctive.name)
+        setValue('caretaker',patientEctive.caretaker)
+        setValue('email',patientEctive.email)
+        setValue('date',patientEctive.date)
+        setValue('symptoms',patientEctive.symptoms)
+    }    
+  }, [idPatient])
 
   const registerPatient=(data:DraftPatient)=>{
-    console.log(data)
+    
+    if(idPatient){
+      updatePatient(data)
+      toast.success('Paciente Guardado', {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        transition:Bounce,
+      })
+    }else{    
+      addPatient(data)
+      toast.success('PacienteGuardado', {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        transition:Bounce,
+      })
+    }
+    reset()
   }
+
+
+  
     return (
       <div className="md:w-1/2 lg:w-2/5 mx-5">
           <h2 className="font-black text-3xl text-center">Seguimiento Pacientes</h2>
@@ -16,8 +67,7 @@ export default function PatientForm() {
           <p className="text-lg mt-5 text-center mb-10">
               Añade Pacientes y {''}
               <span className="text-indigo-600 font-bold">Administralos</span>
-          </p>
-  
+          </p>           
           <form 
               className="bg-white shadow-md rounded-lg py-10 px-5 mb-10"
               noValidate
@@ -31,7 +81,7 @@ export default function PatientForm() {
                         id="name"
                         className="w-full p-3  border border-gray-100"  
                         type="text" 
-                        placeholder="Nombre del Paciente" 
+                        placeholder="Nombre del Paciente"                        
                         {...register('name',{
                             required:'El nombre del paciente es obligatorio'
                         })}
